@@ -1,0 +1,49 @@
+#!/bin/sh
+
+export HOME=/home
+export PATH=/bin:/sbin
+
+# Mount filesystems
+mountpoint -q proc || mount -t proc proc proc
+mountpoint -q sys || mount -t sysfs sys sys
+mountpoint -q dev || mount -t devtmpfs dev dev || mdev -s
+mkdir -p dev/pts
+mountpoint -q dev/pts || mount -t devpts dev/pts dev/pts
+# /tmp inherited from initmpfs
+
+# If nobody said how many CPUS to use in builds, try to figure it out.
+if [ -z "$CPUS" ]
+then
+  export CPUS=$(echo /sys/devices/system/cpu/cpu[0-9]* | wc -w)
+  [ "$CPUS" -lt 1 ] && CPUS=1
+fi
+export PS1="\w$"
+
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
+# Switch to a shell with command history.
+sleep 1
+echo ''
+echo '  #####################################'
+echo '  #                                   #'
+echo '  #    Welcome to "Minimal Linux"     #'
+echo '  #                                   #'
+echo '  #####################################'
+echo ''
+
+for n in $(cat '/sys/class/tty/console/active') 
+do
+  if ! [ $n == tty0 ]; then
+    exec /sbin/oneit -c /dev/$n "/bin/sh" &
+  fi
+done
+
+# /bin/hush
+exec /sbin/oneit -c /dev/tty0 "/bin/sh"
+
+cd /
+umount ./dev/pts
+umount ./dev
+umount ./sys
+umount ./proc
+sync

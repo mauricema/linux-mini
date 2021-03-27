@@ -1,0 +1,5 @@
+initfs
+linux
+bzImage
+config.cfg
+initrd
