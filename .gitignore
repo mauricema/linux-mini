@@ -3,3 +3,5 @@ linux
 bzImage
 config.cfg
 initrd
+vmlinuz
+
